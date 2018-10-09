@@ -1,0 +1,87 @@
+---
+title: "case_study"
+author: "Eric Morris"
+date: "10/9/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+Load data sets
+
+```{r}
+library(p8105.datasets)
+
+data(nyc_airbnb)
+```
+
+Rename/clean some things
+
+```{r}
+nyc_airbnb =
+  nyc_airbnb %>% 
+  mutate(stars = review_scores_location / 2) %>% 
+  rename(boro = neighbourhood_group)
+```
+
+## Some questions 
+
+* Does rating vary by neighborhood, room type, or both?
+* How is price related to other variables?
+* Where are rentals located?
+
+```{r}
+nyc_airbnb %>% 
+  ggplot(aes(x = longitude, y = latitude, color = boro)) +
+  geom_point() 
+
+nyc_airbnb %>% 
+  filter(boro == "Manhattan") %>% 
+  ggplot(aes(x = longitude, y = latitude, color = price)) +
+  geom_point(alpha = .2) +
+  facet_grid(~room_type) 
+```
+
+* What's the most/least expensive area?
+* Which listings have the most unfilled days?
+* Which are has the highest density of listings? 
+* What are some host characteristics? How many listings? What's associated with ratings? 
+
+```{r}
+nyc_airbnb %>% 
+  select(boro, neighbourhood, price) %>% 
+  filter(boro == "Brooklyn") %>% 
+  group_by(neighbourhood) %>% 
+  summarize(n_listings = n(),
+    mean_price = mean(price, na.rm = TRUE),
+            median_price = median(price, na.rm = TRUE)) %>%
+  top_n(5) %>% View
+
+nyc_airbnb %>% 
+  select(boro, neighbourhood, price) %>% 
+  filter(boro == "Brooklyn") %>% 
+  group_by(neighbourhood) %>% 
+  summarize(n_listings = n(),
+            mean_price = mean(price, na.rm = TRUE),
+            median_price = median(price, na.rm = TRUE)) %>%
+  arrange(mean_price)%>% View
+
+nyc_airbnb %>% 
+  select(neighbourhood, price) %>% 
+  group_by(neighbourhood) %>% 
+  summarize(mean = mean(price)) %>%
+  top_n(-5) %>% View
+```
+
